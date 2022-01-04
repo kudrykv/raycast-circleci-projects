@@ -13,7 +13,7 @@ export const ListCircleCIProjects = ({
 const CircleCIItem = ({ name, onReload }: { name: string, onReload: () => void }) =>
   <List.Item
     title={name}
-    icon={{source: {light: "icon.png", dark: "icon@dark.png"}}}
+    icon={{source: {light: "icon.png", dark: "icon@dark.jpg"}}}
     actions={
       <ActionPanel>
         <OpenInBrowserAction url={`https://app.circleci.com/pipelines/github/${name}`} />
