@@ -60,7 +60,7 @@ export interface PipelineItem {
     type: string;
     actor: {
       login: string;
-      avatar_url: string;
+      avatar_url: string | null;
     }
   };
   vcs: {
@@ -72,6 +72,7 @@ export interface PipelineItem {
   };
   created_at: string;
   updated_at: string;
+  workflow?: WorkflowItem;
 }
 
 
@@ -83,11 +84,26 @@ const pipelines = ({ vcs, full_name }: PipelinesParams) => {
     .get(`https://circleci.com/api/v2/project/${vcs}/${full_name}/pipeline`, circleCIHeaders)
     .json()
     .then(json => json as { items: PipelineItem[] })
-    .then(json => {
-      console.log(json.items[0].vcs);
+    .then(json => json.items);
+};
 
-      return json;
-    })
+
+export interface WorkflowItem {
+  id: string;
+  name: string;
+  tag: string;
+  status: string;
+}
+
+interface WorkflowParams {
+  id: string;
+}
+
+export const circleCIWorkflows = ({ id }: WorkflowParams): Promise<WorkflowItem[]> => {
+  return got
+    .get(`https://circleci.com/api/v2/pipeline/${id}/workflow`, circleCIHeaders)
+    .json()
+    .then(json => json as { items: WorkflowItem[] })
     .then(json => json.items);
 };
 
