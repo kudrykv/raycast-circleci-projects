@@ -1,7 +1,7 @@
 import { getLocalStorageItem, setLocalStorageItem, showToast, ToastStyle } from "@raycast/api";
 import { useEffect, useState } from "react";
 import { ListCircleCIProjects } from "./ListCircleCIProjects";
-import { circleCIListEnvVarsForProject, circleCIListProjects } from "./circleci-functions";
+import { circleCIListProjects } from "./circleci-functions";
 
 
 const Command = () => {
@@ -37,7 +37,6 @@ const Command = () => {
     isLoading={isLoading}
     uris={projectURIs}
     onReload={reload}
-    onListAllEnvs={circleCIListEnvVarsForProject}
   />;
 };
 

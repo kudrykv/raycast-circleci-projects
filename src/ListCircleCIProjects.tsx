@@ -6,12 +6,11 @@ export interface ListCircleCIProjectsParams {
   isLoading: boolean;
   uris: string[];
   onReload: () => void;
-  onListAllEnvs: (uri: string) => Promise<Record<string, string>[]>;
 }
 
-export const ListCircleCIProjects = ({ isLoading, uris, onReload, onListAllEnvs }: ListCircleCIProjectsParams) =>
+export const ListCircleCIProjects = ({ isLoading, uris, onReload }: ListCircleCIProjectsParams) =>
   <List isLoading={isLoading}>
-    {uris.map(mapURI(onReload, onListAllEnvs))}
+    {uris.map(mapURI(onReload))}
   </List>;
 
 
@@ -19,18 +18,17 @@ interface CircleCIItemParams {
   uri: string;
   name: string;
   onReload: () => void;
-  onListAllEnvs: (uri: string) => Promise<Record<string, string>[]>;
 }
 
-const CircleCIItem = ({ uri, name, onReload, onListAllEnvs }: CircleCIItemParams) =>
+const CircleCIItem = ({ uri, name, onReload }: CircleCIItemParams) =>
   <List.Item
     title={name}
     icon={{ source: { light: "icon.png", dark: "icon@dark.jpg" } }}
-    actions={<CircleCIItemActions uri={uri} name={name} onReload={onReload} onListAllEnvs={onListAllEnvs} />}
+    actions={<CircleCIItemActions uri={uri} name={name} onReload={onReload} />}
   />;
 
 
-const CircleCIItemActions = ({uri, name, onReload, onListAllEnvs}: CircleCIItemParams) =>
+const CircleCIItemActions = ({uri, name, onReload}: CircleCIItemParams) =>
   <ActionPanel>
     <OpenInBrowserAction url={`https://app.circleci.com/pipelines/github/${name}`} />
     <SubmitFormAction onSubmit={onReload} title="Refresh projects list" icon={Icon.ArrowClockwise} />
@@ -38,7 +36,7 @@ const CircleCIItemActions = ({uri, name, onReload, onListAllEnvs}: CircleCIItemP
       title={"List environment variables"}
       icon={Icon.Dot}
       shortcut={{ key: "e", modifiers: ["cmd", "shift"] }}
-      target={<ListCircleCIEnvVariables uri={uri} full_name={name} onListAllEnvs={onListAllEnvs} />}
+      target={<ListCircleCIEnvVariables uri={uri} full_name={name} />}
     />
     <PushAction
       title={"List pipelines"}
@@ -49,9 +47,9 @@ const CircleCIItemActions = ({uri, name, onReload, onListAllEnvs}: CircleCIItemP
   </ActionPanel>
 
 
-const mapURI = (onReload: () => void, onListAllEnvs: (uri: string) => Promise<Record<string, string>[]>) =>
+const mapURI = (onReload: () => void) =>
   (uri: string) => {
     const name = uri.replace(/^https?:\/\/[^/]+\//, "");
 
-    return <CircleCIItem key={name} uri={uri} name={name} onReload={onReload} onListAllEnvs={onListAllEnvs} />;
+    return <CircleCIItem key={name} uri={uri} name={name} onReload={onReload} />;
   };
