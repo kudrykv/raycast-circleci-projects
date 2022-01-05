@@ -1,7 +1,7 @@
-import { getLocalStorageItem, getPreferenceValues, setLocalStorageItem, showToast, ToastStyle } from "@raycast/api";
+import { getLocalStorageItem, setLocalStorageItem, showToast, ToastStyle } from "@raycast/api";
 import { useEffect, useState } from "react";
-import got from "got";
 import { ListCircleCIProjects } from "./ListCircleCIProjects";
+import { circleCIListEnvVarsForProject, circleCIListProjects } from "./circleci-functions";
 
 
 const Command = () => {
@@ -18,7 +18,7 @@ const Command = () => {
     .then(() => setIsLoading(true))
     .then(() => temp = projectURIs)
     .then(() => setProjectURIs([]))
-    .then(() => pullProjectsFromCircleCI())
+    .then(() => circleCIListProjects())
     .then(list => cacheIfPulled({ list, cache: false }))
     .then(setProjectURIs)
     .then(() => setIsLoading(false))
@@ -33,19 +33,16 @@ const Command = () => {
       .catch(showErrorRestoreList(temp, restore));
   }, []);
 
-  return <ListCircleCIProjects isLoading={isLoading} uris={projectURIs} onReload={reload} />;
+  return <ListCircleCIProjects
+    isLoading={isLoading}
+    uris={projectURIs}
+    onReload={reload}
+    onListAllEnvs={circleCIListEnvVarsForProject}
+  />;
 };
 
 // noinspection JSUnusedGlobalSymbols
 export default Command;
-
-
-const circleCIHeaders = {
-  headers: {
-    "Circle-Token": getPreferenceValues()["api-token"],
-    "Accept": "application/json"
-  }
-};
 
 
 const KEY_PROJECT_URIS = "project-uris";
@@ -67,20 +64,13 @@ const getCircleCIProjectFromCache = (): Promise<string[]> =>
     });
 
 
-const pullProjectsFromCircleCI = () => got
-  .get("https://circleci.com/api/v1.1/me", circleCIHeaders)
-  .json()
-  .then((json) => (json as { projects: Record<string, unknown> }).projects)
-  .then(Object.keys);
-
-
 const pullIfNoCircleCIProjectsWereFound = (list: string[]): Promise<{ list: string[], cache: boolean }> =>
   new Promise(resolve => {
     if (list.length > 0) {
       return resolve({ list, cache: true });
     }
 
-    return pullProjectsFromCircleCI()
+    return circleCIListProjects()
       .then(list => resolve({ list, cache: false }));
   });
 

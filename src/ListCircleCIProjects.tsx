@@ -1,31 +1,52 @@
-import { ActionPanel, Icon, List, OpenInBrowserAction, SubmitFormAction } from "@raycast/api";
+import {
+  ActionPanel,
+  Icon,
+  List,
+  OpenInBrowserAction,
+  PushAction,
+  SubmitFormAction
+} from "@raycast/api";
+import { ListCircleCIEnvVariables } from "./ListCircleCIEnvVariables";
 
-export const ListCircleCIProjects = ({
-                                       isLoading,
-                                       uris,
-                                       onReload
-                                     }: { isLoading: boolean, uris: string[], onReload: () => void }) =>
+export interface ListCircleCIProjectsParams {
+  isLoading: boolean;
+  uris: string[];
+  onReload: () => void;
+  onListAllEnvs: (uri: string) => Promise<Record<string, string>[]>;
+}
+
+export const ListCircleCIProjects = ({ isLoading, uris, onReload, onListAllEnvs }: ListCircleCIProjectsParams) =>
   <List isLoading={isLoading}>
-    {uris.map(mapURI(onReload))}
+    {uris.map(mapURI(onReload, onListAllEnvs))}
   </List>;
 
 
-const CircleCIItem = ({ name, onReload }: { name: string, onReload: () => void }) =>
+const CircleCIItem = ({
+                        uri,
+                        name,
+                        onReload,
+                        onListAllEnvs
+                      }: { uri: string, name: string, onReload: () => void, onListAllEnvs: (uri: string) => Promise<Record<string, string>[]> }) =>
   <List.Item
     title={name}
-    icon={{source: {light: "icon.png", dark: "icon@dark.jpg"}}}
+    icon={{ source: { light: "icon.png", dark: "icon@dark.jpg" } }}
     actions={
       <ActionPanel>
         <OpenInBrowserAction url={`https://app.circleci.com/pipelines/github/${name}`} />
         <SubmitFormAction onSubmit={onReload} title="Refresh projects list" icon={Icon.ArrowClockwise} />
+        <PushAction
+          title={"List environment variables"}
+          shortcut={{ key: "e", modifiers: ["cmd", "shift"] }}
+          target={<ListCircleCIEnvVariables uri={uri} full_name={name} onListAllEnvs={onListAllEnvs} />}
+        />
       </ActionPanel>
     }
   />;
 
 
-const mapURI = (onReload: () => void) =>
-  (name: string) => {
-    const short = name.replace(/^https?:\/\/[^/]+\//, "");
+const mapURI = (onReload: () => void, onListAllEnvs: (uri: string) => Promise<Record<string, string>[]>) =>
+  (uri: string) => {
+    const name = uri.replace(/^https?:\/\/[^/]+\//, "");
 
-    return <CircleCIItem key={short} name={short} onReload={onReload} />;
+    return <CircleCIItem key={name} uri={uri} name={name} onReload={onReload} onListAllEnvs={onListAllEnvs} />;
   };
