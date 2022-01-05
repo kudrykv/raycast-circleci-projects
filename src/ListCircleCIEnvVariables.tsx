@@ -18,11 +18,9 @@ export const ListCircleCIEnvVariables = ({ uri, full_name, onListAllEnvs }: List
       .catch(e => showToast(ToastStyle.Failure, e.message));
   }, []);
 
-  return <List isLoading={isLoading}>
-    <List.Section title={full_name}>
-      {records.map(
-        rec => <List.Item key={rec["name"]} title={rec["name"]} subtitle={rec["value"]} />
-      )}
-    </List.Section>
+  return <List isLoading={isLoading} navigationTitle={full_name}>
+    {records.map(
+      rec => <List.Item key={rec["name"]} title={rec["name"]} subtitle={rec["value"]} />
+    )}
   </List>;
 };

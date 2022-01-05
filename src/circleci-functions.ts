@@ -45,6 +45,53 @@ const listEnvVarsForProject = (params: ListEnvVarsForProjectParams): Promise<Rec
 };
 
 
+interface PipelinesParams {
+  vcs: string;
+  full_name: string;
+}
+
+export interface PipelineItem {
+  id: string;
+  errors: Record<string, string>[];
+  project_slug: string;
+  number: number;
+  state: string;
+  trigger: {
+    type: string;
+    actor: {
+      login: string;
+      avatar_url: string;
+    }
+  };
+  vcs: {
+    branch?: string;
+    tag?: string;
+    commit?: {
+      subject: string;
+    }
+  };
+  created_at: string;
+  updated_at: string;
+}
+
+
+export const circleCIPipelines = (uri: string): Promise<PipelineItem[]> =>
+  pipelines(uriToVCSAndFullName(uri));
+
+const pipelines = ({ vcs, full_name }: PipelinesParams) => {
+  return got
+    .get(`https://circleci.com/api/v2/project/${vcs}/${full_name}/pipeline`, circleCIHeaders)
+    .json()
+    .then(json => json as { items: PipelineItem[] })
+    .then(json => {
+      console.log(json.items[0].vcs);
+
+      return json;
+    })
+    .then(json => json.items);
+};
+
+
 const uriToVCSAndFullName = (uri: string): { vcs: string, full_name: string } => {
   const groups = uri.match(/https?:\/\/(?<host>[^/]+)\/(?<full_name>.+$)/)?.groups;
   if (!groups) {

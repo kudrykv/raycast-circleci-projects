@@ -7,6 +7,7 @@ import {
   SubmitFormAction
 } from "@raycast/api";
 import { ListCircleCIEnvVariables } from "./ListCircleCIEnvVariables";
+import { ListCircleCIProjectPipelines } from "./ListCircleCIProjectPipelines";
 
 export interface ListCircleCIProjectsParams {
   isLoading: boolean;
@@ -44,6 +45,11 @@ const CircleCIItemActions = ({uri, name, onReload, onListAllEnvs}: CircleCIItemP
       title={"List environment variables"}
       shortcut={{ key: "e", modifiers: ["cmd", "shift"] }}
       target={<ListCircleCIEnvVariables uri={uri} full_name={name} onListAllEnvs={onListAllEnvs} />}
+    />
+    <PushAction
+      title={"List pipelines"}
+      shortcut={{key: "p", modifiers: ["cmd", "shift"]}}
+      target={<ListCircleCIProjectPipelines full_name={name} uri={uri} />}
     />
   </ActionPanel>
 
