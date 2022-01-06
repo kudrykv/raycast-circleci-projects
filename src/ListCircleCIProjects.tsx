@@ -1,6 +1,7 @@
 import { ActionPanel, Icon, List, OpenInBrowserAction, PushAction, SubmitFormAction } from "@raycast/api";
 import { ListCircleCIEnvVariables } from "./ListCircleCIEnvVariables";
 import { ListCircleCIProjectPipelines } from "./ListCircleCIProjectPipelines";
+import { uriToLongerSlug } from "./utils";
 
 export interface ListCircleCIProjectsParams {
   isLoading: boolean;
@@ -28,7 +29,7 @@ const CircleCIItem = ({ uri, name, onReload }: CircleCIItemParams) =>
   />;
 
 
-const CircleCIItemActions = ({uri, name, onReload}: CircleCIItemParams) =>
+const CircleCIItemActions = ({ uri, name, onReload }: CircleCIItemParams) =>
   <ActionPanel>
     <OpenInBrowserAction url={`https://app.circleci.com/pipelines/github/${name}`} />
     <SubmitFormAction onSubmit={onReload} title="Refresh projects list" icon={Icon.ArrowClockwise} />
@@ -41,10 +42,16 @@ const CircleCIItemActions = ({uri, name, onReload}: CircleCIItemParams) =>
     <PushAction
       title={"List pipelines"}
       icon={Icon.Binoculars}
-      shortcut={{key: "p", modifiers: ["cmd", "shift"]}}
+      shortcut={{ key: "p", modifiers: ["cmd", "shift"] }}
       target={<ListCircleCIProjectPipelines full_name={name} uri={uri} />}
     />
-  </ActionPanel>
+    <OpenInBrowserAction
+      title="Project Settings"
+      icon={Icon.Gear}
+      url={"https://app.circleci.com/settings/project/" + uriToLongerSlug(uri)}
+      shortcut={{key: "s", modifiers: ["cmd", "shift"]}}
+    />
+  </ActionPanel>;
 
 
 const mapURI = (onReload: () => void) =>

@@ -1,6 +1,7 @@
 import { ActionPanel, Icon, List, OpenInBrowserAction, SubmitFormAction } from "@raycast/api";
 import { useEffect, useState } from "react";
 import { circleCIPipelines, circleCIWorkflows, PipelineItem } from "./circleci-functions";
+import { uriToLongerSlug } from "./utils";
 
 interface Params {
   full_name: string;
@@ -81,21 +82,4 @@ const iconForPipelines = (status: string | undefined) => {
     default:
       return "😱";
   }
-};
-
-
-const uriToLongerSlug = (uri: string) => {
-  const groups = uri.match(/https?:\/\/(?<host>[^/]+)\/(?<rest>.+$)/)?.groups;
-  if (!groups) {
-    throw new Error("Bad uri: " + uri);
-  }
-
-  const { host, rest } = groups;
-  let slug = host;
-
-  if (host.match("github")) {
-    slug = "github";
-  }
-
-  return `${slug}/${rest}`;
 };
