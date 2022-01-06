@@ -1,4 +1,4 @@
-import { List } from "@raycast/api";
+import { ActionPanel, Icon, List, OpenInBrowserAction, SubmitFormAction } from "@raycast/api";
 import { useEffect, useState } from "react";
 import { circleCIPipelines, circleCIWorkflows, PipelineItem } from "./circleci-functions";
 
@@ -11,16 +11,24 @@ export const ListCircleCIProjectPipelines = ({ full_name, uri }: Params) => {
   const [isLoading, setIsLoading] = useState(true);
   const [pipelines, setPipelines] = useState<PipelineItem[]>([]);
 
-  useEffect(() => {
-    let cachePipelines: PipelineItem[];
-
-    circleCIPipelines(uri)
-      .then(list => cachePipelines = list)
-      .then(pipelines => cachePipelines = pipelines)
-      .then(setPipelines)
-      .then(() => Promise.all(cachePipelines.map(({ id }) => circleCIWorkflows({ id }).then(list => list.pop()))))
-      .then(workflows => cachePipelines.forEach((p, i) => p.workflow = workflows[i]))
+  const load = () =>
+    Promise.resolve()
+      .then(() => setIsLoading(true))
+      .then(() => circleCIPipelines(uri))
+      .then(pipelines => {
+        setPipelines(pipelines);
+        return pipelines;
+      })
+      .then(pipelines =>
+        Promise
+          .all(pipelines.map(({ id }) => circleCIWorkflows({ id }).then(list => list.pop())))
+          .then(workflows => ({ pipelines, workflows }))
+      )
+      .then(({ pipelines, workflows }) => pipelines.forEach((p, i) => p.workflow = workflows[i]))
       .then(() => setIsLoading(false));
+
+  useEffect(() => {
+    load();
   }, []);
 
   return <List isLoading={isLoading} navigationTitle={full_name}>
@@ -42,6 +50,19 @@ export const ListCircleCIProjectPipelines = ({ full_name, uri }: Params) => {
           subtitle={item.vcs.tag || item.vcs.branch || ""}
           accessoryTitle={item.workflow?.name || "No workflow"}
           keywords={[item.vcs.branch || item.vcs.tag || ""]}
+          actions={
+            <ActionPanel>
+              {item.workflow && <OpenInBrowserAction
+                url={`https://app.circleci.com/pipelines/${uriToLongerSlug(uri)}/${item.number}/workflows/${item.workflow.id}`}
+              />}
+              <SubmitFormAction
+                title="Refresh"
+                onSubmit={() => load()}
+                icon={Icon.ArrowClockwise}
+                shortcut={{key: "r", modifiers: ["cmd", "shift"]}}
+              />
+            </ActionPanel>
+          }
         />)}
       </List.Section>)}
   </List>;
@@ -60,4 +81,21 @@ const iconForPipelines = (status: string | undefined) => {
     default:
       return "😱";
   }
+};
+
+
+const uriToLongerSlug = (uri: string) => {
+  const groups = uri.match(/https?:\/\/(?<host>[^/]+)\/(?<rest>.+$)/)?.groups;
+  if (!groups) {
+    throw new Error("Bad uri: " + uri);
+  }
+
+  const { host, rest } = groups;
+  let slug = host;
+
+  if (host.match("github")) {
+    slug = "github";
+  }
+
+  return `${slug}/${rest}`;
 };
